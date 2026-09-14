@@ -1,0 +1,26 @@
+[
+  {
+    "code": "R220",
+    "description": "Recent delinquency history",
+    "category": "SCORE",
+    "feature": "dpd30_plus_last_12m"
+  },
+  {
+    "code": "R230",
+    "description": "High recent credit enquiry velocity",
+    "category": "SCORE",
+    "feature": "enquiries_last_3m"
+  },
+  {
+    "code": "R260",
+    "description": "Low income relative to portfolio",
+    "category": "SCORE",
+    "feature": "monthly_income"
+  },
+  {
+    "code": "R270",
+    "description": "Limited credit experience for age band",
+    "category": "SCORE",
+    "feature": "age"
+  }
+]

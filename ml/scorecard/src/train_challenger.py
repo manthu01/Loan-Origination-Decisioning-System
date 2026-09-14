@@ -16,31 +16,26 @@ import pandas as pd
 import xgboost as xgb
 from sklearn.metrics import roc_auc_score
 
-from train_scorecard import (
-    CATEGORICAL_FEATURES,
-    CONTINUOUS_FEATURES,
-    engineer_features,
-    ks_statistic,
-    time_split,
-)
+from train_scorecard import CONTINUOUS_FEATURES, engineer_features, ks_statistic, time_split
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA_PATH = ROOT / "data" / "applications.csv"
 ARTIFACTS_DIR = ROOT / "artifacts"
 MODEL_VERSION = "xgb-v0.4"
 
-
+# Numeric features only, deliberately -- this challenger runs in shadow mode in a lean
+# FastAPI service with no pandas in the request path, and reproducing XGBoost's internal
+# categorical split encoding outside of a pandas Categorical dtype is fragile. Dropping
+# employment_type/education costs negligible AUC here (their scorecard IV was ~0.004-0.009)
+# and keeps the serving side a plain float vector.
 def main():
     df = engineer_features(pd.read_csv(DATA_PATH, parse_dates=["application_date"]))
     train, val, oot = time_split(df)
 
-    feature_cols = CONTINUOUS_FEATURES + CATEGORICAL_FEATURES
-    for col in CATEGORICAL_FEATURES:
-        for split in (train, val, oot):
-            split[col] = split[col].astype("category")
+    feature_cols = CONTINUOUS_FEATURES
 
     def to_dmatrix(split: pd.DataFrame) -> xgb.DMatrix:
-        return xgb.DMatrix(split[feature_cols], label=split["target"], enable_categorical=True)
+        return xgb.DMatrix(split[feature_cols], label=split["target"])
 
     dtrain, dval, doot = to_dmatrix(train), to_dmatrix(val), to_dmatrix(oot)
 

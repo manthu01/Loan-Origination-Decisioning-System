@@ -110,16 +110,19 @@ would use to size the REFER/manual-review queue.
 
 ## Champion vs. challenger
 
-An XGBoost model was trained on the same split and raw (non-WOE) features as a shadow
-challenger.
+An XGBoost model was trained on the same split and raw (non-WOE) numeric features as a
+shadow challenger — categorical features (`employment_type`, `education`) were left out of
+the challenger deliberately: their scorecard IV was negligible (0.004 and 0.009), and
+dropping them keeps the serving side a plain float vector instead of needing pandas'
+categorical dtype to reproduce XGBoost's split encoding at request time.
 
 | Model | OOT AUC | OOT KS |
 |---|---|---|
 | Champion — scorecard-v1.2 (logistic, WOE) | 0.710 | 0.305 |
-| Challenger — xgb-v0.4 | 0.745 | 0.402 |
-| Gap | +0.036 AUC | |
+| Challenger — xgb-v0.4 | 0.747 | 0.400 |
+| Gap | +0.037 AUC | |
 
-XGBoost wins by ~3.6 points of AUC, in line with the 2–4 point gap the build plan
+XGBoost wins by ~3.7 points of AUC, in line with the 2–4 point gap the build plan
 predicted for this class of problem.
 
 ### Why the scorecard ships as champion anyway
