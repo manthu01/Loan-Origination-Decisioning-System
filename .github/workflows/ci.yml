@@ -1,0 +1,92 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  orchestrator:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/orchestrator
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install workspace dependencies
+        working-directory: .
+        run: npm ci
+      - name: Generate Prisma client
+        working-directory: .
+        run: npx prisma generate --schema=packages/db/prisma/schema.prisma
+      - name: Build
+        run: npx nest build
+      - name: Unit tests
+        run: npx jest --ci
+
+  scoring-service:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/scoring-service
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+          cache-dependency-path: apps/scoring-service/requirements.txt
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Test
+        run: python -m pytest tests/ -v
+
+  console:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/console
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install workspace dependencies
+        working-directory: .
+        run: npm ci
+      - name: Lint
+        run: npx eslint .
+      - name: Build
+        run: npx next build
+        env:
+          NEXT_PUBLIC_API_BASE_URL: http://localhost:3001
+
+  scorecard:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ml/scorecard
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+          cache-dependency-path: ml/scorecard/requirements.txt
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Generate synthetic data and train
+        run: |
+          python src/generate_synthetic_data.py
+          python src/train_scorecard.py
+          python src/train_challenger.py
+      - name: Assert artifacts were produced
+        run: |
+          test -f artifacts/scorecard-v1.2.json
+          test -f artifacts/xgb-v0.4.json

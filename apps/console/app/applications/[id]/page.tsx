@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { api, ApiError, ApplicationDetail } from '@/lib/api';
+import { api, ApiError, ApplicationDetail, ReplayResult } from '@/lib/api';
 import { OutcomeBadge } from '@/components/OutcomeBadge';
 
 const STAGE_LABELS: Record<string, string> = {
@@ -21,7 +21,7 @@ export default function CaseDetailPage() {
   const params = useParams<{ id: string }>();
   const [data, setData] = useState<ApplicationDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [replayResult, setReplayResult] = useState<any>(null);
+  const [replayResult, setReplayResult] = useState<ReplayResult | { error: string } | null>(null);
   const [replaying, setReplaying] = useState(false);
 
   function load() {
@@ -101,17 +101,18 @@ export default function CaseDetailPage() {
           >
             {replaying ? 'Replaying…' : 'Replay decision'}
           </button>
-          {replayResult && (
+          {replayResult && 'error' in replayResult && (
+            <div className="mt-2 rounded-md bg-red-50 p-2 text-xs text-red-800">{replayResult.error}</div>
+          )}
+          {replayResult && !('error' in replayResult) && (
             <div className={`mt-2 rounded-md p-2 text-xs ${replayResult.matches ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
-              {replayResult.error ? (
-                replayResult.error
-              ) : replayResult.matches ? (
+              {replayResult.matches ? (
                 'Matches stored decision exactly.'
               ) : (
                 <div>
                   <p className="font-semibold">Diverged:</p>
                   <ul className="list-disc pl-4">
-                    {replayResult.differences.map((d: any) => (
+                    {replayResult.differences.map((d) => (
                       <li key={d.field}>
                         {d.field}: {JSON.stringify(d.original)} → {JSON.stringify(d.replayed)}
                       </li>

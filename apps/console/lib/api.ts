@@ -126,6 +126,15 @@ export interface SimulationResult {
   sampleSize: number;
 }
 
+export interface ReplayResult {
+  decisionId: string;
+  applicationId: string;
+  policyVersion: string;
+  modelVersion: string;
+  matches: boolean;
+  differences: Array<{ field: string; original: unknown; replayed: unknown }>;
+}
+
 export interface DashboardStats {
   windowDays: number;
   totalDecisions: number;
@@ -154,7 +163,7 @@ export const api = {
     request<SimulationResult>('/policy/simulate', { method: 'POST', body: JSON.stringify(dto) }),
   override: (decisionId: string, dto: { newOutcome: 'APPROVE' | 'DECLINE'; justification: string; proposedBy: string; approvedBy: string }) =>
     request(`/decisions/${decisionId}/override`, { method: 'POST', body: JSON.stringify(dto) }),
-  replay: (decisionId: string) => request(`/decisions/${decisionId}/replay`, { method: 'POST' }),
+  replay: (decisionId: string) => request<ReplayResult>(`/decisions/${decisionId}/replay`, { method: 'POST' }),
   verifyChain: () => request<{ valid: boolean; firstBreakId: string | null }>('/audit/verify'),
   stats: (product?: string, days?: number) => {
     const qs = new URLSearchParams();
