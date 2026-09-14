@@ -1,0 +1,125 @@
+{
+  "train": {
+    "auc": 0.7,
+    "ks": 0.3177,
+    "gini": 0.4001,
+    "n": 35700,
+    "bad_rate": 0.0695
+  },
+  "val": {
+    "auc": 0.6967,
+    "ks": 0.3131,
+    "gini": 0.3934,
+    "n": 15300,
+    "bad_rate": 0.0637
+  },
+  "oot": {
+    "auc": 0.7097,
+    "ks": 0.3051,
+    "gini": 0.4195,
+    "n": 9000,
+    "bad_rate": 0.0674,
+    "gains_table": [
+      {
+        "decile": 9,
+        "score_range": [
+          582.9,
+          588.9
+        ],
+        "n": 898,
+        "bad_rate": 0.0178,
+        "pct_of_total_bads": 0.0264
+      },
+      {
+        "decile": 8,
+        "score_range": [
+          582.2,
+          582.6
+        ],
+        "n": 796,
+        "bad_rate": 0.0289,
+        "pct_of_total_bads": 0.0379
+      },
+      {
+        "decile": 7,
+        "score_range": [
+          578.1,
+          582.1
+        ],
+        "n": 931,
+        "bad_rate": 0.0279,
+        "pct_of_total_bads": 0.0428
+      },
+      {
+        "decile": 6,
+        "score_range": [
+          575.6,
+          578.0
+        ],
+        "n": 912,
+        "bad_rate": 0.0493,
+        "pct_of_total_bads": 0.0741
+      },
+      {
+        "decile": 5,
+        "score_range": [
+          573.1,
+          575.5
+        ],
+        "n": 836,
+        "bad_rate": 0.0383,
+        "pct_of_total_bads": 0.0527
+      },
+      {
+        "decile": 4,
+        "score_range": [
+          571.0,
+          573.1
+        ],
+        "n": 1014,
+        "bad_rate": 0.0611,
+        "pct_of_total_bads": 0.1021
+      },
+      {
+        "decile": 3,
+        "score_range": [
+          568.0,
+          571.0
+        ],
+        "n": 902,
+        "bad_rate": 0.0643,
+        "pct_of_total_bads": 0.0956
+      },
+      {
+        "decile": 2,
+        "score_range": [
+          565.9,
+          567.9
+        ],
+        "n": 704,
+        "bad_rate": 0.0554,
+        "pct_of_total_bads": 0.0643
+      },
+      {
+        "decile": 1,
+        "score_range": [
+          554.1,
+          565.8
+        ],
+        "n": 1097,
+        "bad_rate": 0.0766,
+        "pct_of_total_bads": 0.1384
+      },
+      {
+        "decile": 0,
+        "score_range": [
+          500.4,
+          535.2
+        ],
+        "n": 910,
+        "bad_rate": 0.244,
+        "pct_of_total_bads": 0.3657
+      }
+    ]
+  }
+}

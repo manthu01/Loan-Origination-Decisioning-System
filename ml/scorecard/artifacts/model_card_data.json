@@ -1,0 +1,213 @@
+{
+  "model_version": "scorecard-v1.2",
+  "iv_table": [
+    {
+      "feature": "age",
+      "iv": 0.0459,
+      "kept": true
+    },
+    {
+      "feature": "monthly_income",
+      "iv": 0.0929,
+      "kept": true
+    },
+    {
+      "feature": "employment_tenure_months",
+      "iv": 0.0055,
+      "kept": false
+    },
+    {
+      "feature": "num_dependents",
+      "iv": 0.0155,
+      "kept": false
+    },
+    {
+      "feature": "tradelines",
+      "iv": 0.0037,
+      "kept": false
+    },
+    {
+      "feature": "oldest_tradeline_age_months",
+      "iv": 0.0019,
+      "kept": false
+    },
+    {
+      "feature": "credit_utilization",
+      "iv": 0.0175,
+      "kept": false
+    },
+    {
+      "feature": "enquiries_last_3m",
+      "iv": 0.0361,
+      "kept": true
+    },
+    {
+      "feature": "dpd30_plus_last_12m",
+      "iv": 0.5977,
+      "kept": true
+    },
+    {
+      "feature": "num_previous_defaults",
+      "iv": 0.0,
+      "kept": false
+    },
+    {
+      "feature": "obligations_to_income",
+      "iv": 0.0011,
+      "kept": false
+    },
+    {
+      "feature": "employment_type",
+      "iv": 0.0039,
+      "kept": false
+    },
+    {
+      "feature": "education",
+      "iv": 0.009,
+      "kept": false
+    }
+  ],
+  "kept_features": [
+    "dpd30_plus_last_12m",
+    "monthly_income",
+    "age",
+    "enquiries_last_3m"
+  ],
+  "coefficients": {
+    "dpd30_plus_last_12m": -0.9597,
+    "monthly_income": -0.7442,
+    "age": -0.0452,
+    "enquiries_last_3m": -0.766
+  },
+  "intercept": -2.5932,
+  "metrics": {
+    "train": {
+      "auc": 0.7,
+      "ks": 0.3177,
+      "gini": 0.4001,
+      "n": 35700,
+      "bad_rate": 0.0695
+    },
+    "val": {
+      "auc": 0.6967,
+      "ks": 0.3131,
+      "gini": 0.3934,
+      "n": 15300,
+      "bad_rate": 0.0637
+    },
+    "oot": {
+      "auc": 0.7097,
+      "ks": 0.3051,
+      "gini": 0.4195,
+      "n": 9000,
+      "bad_rate": 0.0674,
+      "gains_table": [
+        {
+          "decile": 9,
+          "score_range": [
+            582.9,
+            588.9
+          ],
+          "n": 898,
+          "bad_rate": 0.0178,
+          "pct_of_total_bads": 0.0264
+        },
+        {
+          "decile": 8,
+          "score_range": [
+            582.2,
+            582.6
+          ],
+          "n": 796,
+          "bad_rate": 0.0289,
+          "pct_of_total_bads": 0.0379
+        },
+        {
+          "decile": 7,
+          "score_range": [
+            578.1,
+            582.1
+          ],
+          "n": 931,
+          "bad_rate": 0.0279,
+          "pct_of_total_bads": 0.0428
+        },
+        {
+          "decile": 6,
+          "score_range": [
+            575.6,
+            578.0
+          ],
+          "n": 912,
+          "bad_rate": 0.0493,
+          "pct_of_total_bads": 0.0741
+        },
+        {
+          "decile": 5,
+          "score_range": [
+            573.1,
+            575.5
+          ],
+          "n": 836,
+          "bad_rate": 0.0383,
+          "pct_of_total_bads": 0.0527
+        },
+        {
+          "decile": 4,
+          "score_range": [
+            571.0,
+            573.1
+          ],
+          "n": 1014,
+          "bad_rate": 0.0611,
+          "pct_of_total_bads": 0.1021
+        },
+        {
+          "decile": 3,
+          "score_range": [
+            568.0,
+            571.0
+          ],
+          "n": 902,
+          "bad_rate": 0.0643,
+          "pct_of_total_bads": 0.0956
+        },
+        {
+          "decile": 2,
+          "score_range": [
+            565.9,
+            567.9
+          ],
+          "n": 704,
+          "bad_rate": 0.0554,
+          "pct_of_total_bads": 0.0643
+        },
+        {
+          "decile": 1,
+          "score_range": [
+            554.1,
+            565.8
+          ],
+          "n": 1097,
+          "bad_rate": 0.0766,
+          "pct_of_total_bads": 0.1384
+        },
+        {
+          "decile": 0,
+          "score_range": [
+            500.4,
+            535.2
+          ],
+          "n": 910,
+          "bad_rate": 0.244,
+          "pct_of_total_bads": 0.3657
+        }
+      ]
+    }
+  },
+  "splits": {
+    "train": 35700,
+    "val": 15300,
+    "oot": 9000
+  }
+}

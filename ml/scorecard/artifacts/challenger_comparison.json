@@ -1,0 +1,43 @@
+{
+  "champion": {
+    "model_version": "scorecard-v1.2",
+    "oot": 0.7097
+  },
+  "challenger": {
+    "model_version": "xgb-v0.4",
+    "oot": 0.7453
+  },
+  "auc_gap": 0.0356,
+  "challenger_metrics": {
+    "train": {
+      "auc": 0.7517,
+      "ks": 0.401,
+      "gini": 0.5035
+    },
+    "val": {
+      "auc": 0.7364,
+      "ks": 0.4027,
+      "gini": 0.4727
+    },
+    "oot": {
+      "auc": 0.7453,
+      "ks": 0.4022,
+      "gini": 0.4906
+    }
+  },
+  "feature_importance": {
+    "dpd30_plus_last_12m": 223.7,
+    "num_previous_defaults": 13.7,
+    "monthly_income": 11.7,
+    "enquiries_last_3m": 7.0,
+    "credit_utilization": 6.0,
+    "num_dependents": 5.7,
+    "age": 4.9,
+    "employment_tenure_months": 4.8,
+    "education": 4.7,
+    "oldest_tradeline_age_months": 4.6,
+    "obligations_to_income": 4.5,
+    "tradelines": 3.7,
+    "employment_type": 3.5
+  }
+}
