@@ -1,10 +1,10 @@
 # orchestrator
 
-NestJS service. This phase ships the policy engine -- the project's differentiator:
-policy as versioned JSON data, a safe (no-`eval`) rule evaluator, maker-checker on
-activation, and a what-if simulator with swap-set analysis. The pipeline orchestration
-(dedupe → KYC → bureau → rules → score → limit → price → persist) and the audit log land
-in later phases -- see `docs/build-plan.md`.
+NestJS service. Ships the policy engine (versioned JSON policy, safe no-`eval` rule
+evaluator, maker-checker, what-if simulator) and the full application pipeline: dedupe →
+KYC → bureau (mocked, circuit breaker) → score → rules → limit/price → persist, with a
+SHA-256 hash-chained append-only audit trail. The console and the chain-verify/replay
+endpoints land in a later phase -- see `docs/build-plan.md`.
 
 ## Modules
 
@@ -18,6 +18,16 @@ in later phases -- see `docs/build-plan.md`.
   applications against a draft policy and reports approval/refer/decline rate deltas plus
   exactly who flips outcome and why.
 
+- `applications/stages/*` — one file per pipeline stage (dedupe, KYC, bureau + circuit
+  breaker, scoring HTTP client, limit/pricing math), each independently unit-tested.
+- `applications/applications.service.ts` — orchestrates the stages in order and persists
+  every stage's `DecisionEvent` plus the `Decision` in one transaction. Runs SCORE before
+  RULES (swapped from the plan's numbered list) because a `SCORE_FLOOR` rule needs
+  `score.value` to already exist.
+- `common/hash-chain.service.ts` — appends to a single global, advisory-lock-serialized
+  hash chain (`hash = sha256(prevHash + canonical(payload))`) and can walk the whole
+  chain to find the first tampered row.
+
 ## Endpoints
 
 - `POST /policy` — create a DRAFT policy version.
@@ -26,6 +36,18 @@ in later phases -- see `docs/build-plan.md`.
   the draft's `createdBy`.
 - `POST /policy/simulate` — `{ product, rules, sampleSize? }`, replays the most recent
   `sampleSize` (default 10,000) decided applications for that product against the draft.
+- `POST /applications` — `{ applicant: {...}, application: {...} }`, optional
+  `Idempotency-Key` header. Runs the full pipeline and returns the decision.
+- `GET /applications/:id` — application + decision + full ordered `DecisionEvent` trace.
+
+## A calibration note for any policy you activate
+
+This scorecard's point range tops out around **589**, not the 1000ish a textbook FICO-style
+range suggests -- see `ml/scorecard/MODEL_CARD.md`. A `SCORE_FLOOR` rule copied verbatim
+from the build plan's example (`score.value >= 620`) will decline *every* application,
+since 620 is unreachable. Use a threshold inside the model's actual range (verified by
+manual testing: roughly 500–589) -- e.g. 560 -- or nobody will ever get approved. The
+Week 5 seed script uses a calibrated default for exactly this reason.
 
 ## Run it
 

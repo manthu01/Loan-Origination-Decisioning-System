@@ -6,11 +6,12 @@
  */
 export interface ApplicantPayload {
   fullName: string;
-  dob: string; // ISO date
-  age: number;
+  pan: string; // AAAAA9999A format, validated at KYC
+  dob: string; // ISO date; age is derived server-side at KYC, never trusted from the client
   mobile: string;
   email?: string;
   employmentType: string;
+  employmentTenureMonths: number;
   monthlyIncome: number;
   obligations: number;
   numDependents: number;
@@ -29,6 +30,9 @@ export interface RawApplicationPayload {
 }
 
 export interface BureauPayload {
+  available: number; // 0 or 1 -- 0 means the bureau pull failed or the circuit was open;
+  // see applications/stages/bureau.service.ts. A policy's BUREAU_UNAVAILABLE rule reads
+  // this to REFER for manual bureau pull instead of scoring on absent data.
   tradelines: number;
   dpd30PlusLast12M: number;
   enquiriesLast3M: number;
