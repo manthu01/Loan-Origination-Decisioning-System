@@ -1,0 +1,68 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-creditflow}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-creditflow}
+      POSTGRES_DB: ${POSTGRES_DB:-creditflow}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-creditflow}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  scoring-service:
+    build: ./apps/scoring-service
+    restart: unless-stopped
+    environment:
+      SCORECARD_MODEL_PATH: /app/artifacts/scorecard-v1.2.json
+      CHALLENGER_MODEL_PATH: /app/artifacts/xgb-v0.4.json
+    ports:
+      - "8000:8000"
+
+  orchestrator:
+    build: ./apps/orchestrator
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      scoring-service:
+        condition: service_started
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-creditflow}:${POSTGRES_PASSWORD:-creditflow}@postgres:5432/${POSTGRES_DB:-creditflow}?schema=public
+      REDIS_URL: redis://redis:6379
+      SCORING_SERVICE_URL: http://scoring-service:8000
+      PORT: 3001
+    ports:
+      - "3001:3001"
+
+  console:
+    build: ./apps/console
+    restart: unless-stopped
+    depends_on:
+      - orchestrator
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:3001
+    ports:
+      - "3000:3000"
+
+volumes:
+  pgdata:

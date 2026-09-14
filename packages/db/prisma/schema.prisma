@@ -1,0 +1,178 @@
+// CreditFlow data model.
+// DecisionEvent is append-only: never UPDATE or DELETE a row. Enforced with a
+// Postgres rule in migrations/*_append_only_decision_events (added after the
+// initial migration is generated).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ApplicationStatus {
+  RECEIVED
+  PROCESSING
+  DECIDED
+  WITHDRAWN
+}
+
+enum DecisionOutcome {
+  APPROVE
+  REFER
+  DECLINE
+}
+
+enum PolicyStatus {
+  DRAFT
+  ACTIVE
+  RETIRED
+}
+
+enum PipelineStage {
+  DEDUPE
+  KYC
+  BUREAU
+  RULES
+  SCORE
+  LIMIT
+  PRICE
+  PERSIST
+}
+
+enum UserRole {
+  ANALYST
+  CREDIT_OPS
+  POLICY_MAKER
+  POLICY_CHECKER
+  ADMIN
+}
+
+model Applicant {
+  id           String        @id @default(uuid())
+  panHash      String // hash of (PAN + DOB + mobile), used for dedupe
+  fullName     String
+  dob          DateTime
+  mobile       String
+  email        String?
+  employmentType String
+  monthlyIncome Decimal
+  createdAt    DateTime      @default(now())
+  applications Application[]
+
+  @@index([panHash])
+}
+
+model Application {
+  id              String            @id @default(uuid())
+  applicantId     String
+  applicant       Applicant         @relation(fields: [applicantId], references: [id])
+  product         String // PL, BL, AUTO
+  requestedAmount Decimal
+  tenureMonths    Int
+  income          Decimal
+  obligations     Decimal
+  employmentType  String
+  payload         Json // full raw submission, immutable snapshot
+  status          ApplicationStatus @default(RECEIVED)
+  idempotencyKey  String?           @unique
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  decisions Decision[]
+  events    DecisionEvent[]
+
+  @@index([applicantId])
+  @@index([status])
+}
+
+model Decision {
+  id                   String          @id @default(uuid())
+  applicationId        String
+  application          Application     @relation(fields: [applicationId], references: [id])
+  outcome              DecisionOutcome
+  score                Int
+  probabilityOfDefault Decimal
+  riskGrade            String // A1..E3
+  approvedAmount       Decimal?
+  interestRate         Decimal?
+  reasonCodes          String[]
+  policyVersionId      String
+  policyVersion        PolicyVersion   @relation(fields: [policyVersionId], references: [id])
+  modelVersionId       String
+  modelVersion         ModelVersion    @relation(fields: [modelVersionId], references: [id])
+  challengerScore      Int? // shadow-mode XGBoost
+  challengerModelId    String?
+  latencyMs            Int
+  overriddenById        String?
+  overrideJustification String?
+  createdAt            DateTime        @default(now())
+
+  @@index([applicationId])
+  @@index([policyVersionId])
+  @@index([modelVersionId])
+}
+
+// Append-only pipeline trace. One row per stage per application attempt.
+// Forms the hash chain: hash = sha256(prevHash + canonical(payload)).
+model DecisionEvent {
+  id            BigInt        @id @default(autoincrement())
+  applicationId String
+  application   Application   @relation(fields: [applicationId], references: [id])
+  stage         PipelineStage
+  input         Json
+  output        Json
+  durationMs    Int
+  prevHash      String
+  hash          String        @unique
+  createdAt     DateTime      @default(now())
+
+  @@index([applicationId])
+  @@index([createdAt])
+}
+
+model PolicyVersion {
+  id          String       @id @default(uuid())
+  version     String       @unique // "2026.03.1"
+  product     String
+  rules       Json
+  status      PolicyStatus @default(DRAFT)
+  createdBy   String
+  approvedBy  String? // maker-checker: must differ from createdBy
+  activatedAt DateTime?
+  retiredAt   DateTime?
+  createdAt   DateTime     @default(now())
+
+  decisions Decision[]
+
+  @@index([status])
+  @@index([product])
+}
+
+model ModelVersion {
+  id          String   @id @default(uuid())
+  name        String   @unique // "scorecard-v1.2", "xgb-v0.4"
+  kind        String // SCORECARD | CHALLENGER
+  artifactUri String // path/URI to the JSON artifact
+  metrics     Json // { auc, ks, gini, ... }
+  isChampion  Boolean  @default(false)
+  loadedAt    DateTime @default(now())
+
+  decisions Decision[]
+}
+
+model ReasonCode {
+  code        String @id // "R204"
+  description String
+  category    String // POLICY | BUREAU | SCORE
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  name         String
+  role         UserRole
+  createdAt    DateTime @default(now())
+}

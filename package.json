@@ -1,0 +1,12 @@
+{
+  "name": "loan-origination-decisioning-system",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "db:generate": "npm run generate --workspace=packages/db",
+    "db:migrate": "npm run migrate --workspace=packages/db"
+  }
+}

@@ -1,0 +1,44 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+
+# env
+.env
+.env.*
+!.env.example
+
+# build output
+dist/
+build/
+.next/
+out/
+
+# prisma
+packages/db/prisma/migrations/dev.db
+
+# data
+ml/scorecard/data/*.csv
+!ml/scorecard/data/.gitkeep
+
+# logs
+*.log
+npm-debug.log*
+
+# os
+.DS_Store
+Thumbs.db
+
+# ide
+.vscode/
+.idea/
+
+# original planning doc (kept locally, not needed in repo history noise)
+CreditFlow-Build-Plan.md.pdf
