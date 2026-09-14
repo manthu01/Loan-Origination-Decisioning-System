@@ -1,4 +1,5 @@
 import { Injectable, UnprocessableEntityException } from '@nestjs/common';
+import { deriveAge } from '../../common/date';
 import { ApplicantPayload } from '../../common/domain.types';
 
 const PAN_FORMAT = /^[A-Z]{5}[0-9]{4}[A-Z]$/; // Indian PAN: AAAAA9999A
@@ -34,12 +35,4 @@ export class KycService {
 
     return { age: deriveAge(dob, asOf), panFormatValid, mobileFormatValid };
   }
-}
-
-export function deriveAge(dob: Date, asOf: Date): number {
-  let age = asOf.getFullYear() - dob.getFullYear();
-  const hasHadBirthdayThisYear =
-    asOf.getMonth() > dob.getMonth() || (asOf.getMonth() === dob.getMonth() && asOf.getDate() >= dob.getDate());
-  if (!hasHadBirthdayThisYear) age -= 1;
-  return age;
 }

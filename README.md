@@ -16,8 +16,12 @@ point of this project — see [why each piece matters to a bank](docs/design-doc
 
 ## Status
 
-Under active build. See [`docs/build-plan.md`](docs/build-plan.md) for the phase order
-and what's implemented so far.
+The differentiator and the engineering signal are both done: scorecard, scoring service,
+rules engine + versioned policy + what-if simulator, the full orchestration pipeline,
+hash-chained audit log + replay, and the credit-ops console are all built and verified
+against a real Postgres/Redis/scoring-service stack (not just unit tests). Remaining:
+seed data, CI, and load-test numbers. See [`docs/build-plan.md`](docs/build-plan.md) for
+the full phase breakdown.
 
 ## Architecture
 

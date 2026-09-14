@@ -1,5 +1,6 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../common/prisma.service';
+import { deriveAge } from '../common/date';
 import { RawApplicationPayload } from '../common/domain.types';
 import { RulesEngineService } from '../common/rules-engine.service';
 import { PolicyDocument, RuleEvaluationContext } from '../common/rules-engine.types';
@@ -105,8 +106,12 @@ export class PolicyService {
       if (!decision || !bureauEvent) continue;
 
       const payload = app.payload as unknown as RawApplicationPayload;
+      // payload.applicant only has dob, not the computed `age` the live pipeline derives
+      // at KYC time and merges into its rule context -- reconstruct it the same way, or
+      // every AGE_* rule would see `age: undefined` and fail for every replayed record.
+      const applicantWithAge = { ...payload.applicant, age: deriveAge(new Date(payload.applicant.dob), decision.createdAt) };
       const context: RuleEvaluationContext = {
-        applicant: payload.applicant as unknown as Record<string, unknown>,
+        applicant: applicantWithAge as unknown as Record<string, unknown>,
         application: payload.application as unknown as Record<string, unknown>,
         bureau: JSON.parse(bureauEvent.output) as Record<string, unknown>,
         score: { value: decision.score },

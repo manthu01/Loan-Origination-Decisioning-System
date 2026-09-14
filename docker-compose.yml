@@ -53,16 +53,21 @@ services:
       REDIS_URL: redis://redis:6379
       SCORING_SERVICE_URL: http://scoring-service:8000
       PORT: 3001
+      CONSOLE_ORIGIN: http://localhost:3000
     ports:
       - "3001:3001"
 
   console:
-    build: ./apps/console
+    build:
+      context: ./apps/console
+      args:
+        # Next.js bakes NEXT_PUBLIC_* vars in at build time, not runtime -- this must be
+        # reachable from the *browser*, not from inside the compose network, so it points
+        # at the orchestrator's published host port rather than its service name.
+        NEXT_PUBLIC_API_BASE_URL: http://localhost:3001
     restart: unless-stopped
     depends_on:
       - orchestrator
-    environment:
-      NEXT_PUBLIC_API_BASE_URL: http://localhost:3001
     ports:
       - "3000:3000"
 

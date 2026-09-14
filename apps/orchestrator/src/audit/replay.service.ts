@@ -5,7 +5,8 @@ import { PolicyDocument, RuleEvaluationContext } from '../common/rules-engine.ty
 import { RawApplicationPayload, BureauPayload } from '../common/domain.types';
 import { LimitPricingService } from '../applications/stages/limit-pricing.service';
 import { buildScoringFeatures, ScoringClientService } from '../applications/stages/scoring-client.service';
-import { deriveAge } from '../applications/stages/kyc.service';
+import { deriveAge } from '../common/date';
+import { mergeReasonCodes } from '../common/reason-codes';
 
 export interface ReplayDifference {
   field: string;
@@ -94,6 +95,8 @@ export class ReplayService {
       interestRate = priced.interestRate;
     }
 
+    const replayedReasonCodes = mergeReasonCodes(ruleResult.outcome, ruleResult.reasonCodes, score.reasonCodes);
+
     const differences: ReplayDifference[] = [];
     const check = (field: string, original: unknown, replayed: unknown) => {
       if (JSON.stringify(original) !== JSON.stringify(replayed)) {
@@ -103,7 +106,7 @@ export class ReplayService {
     check('outcome', decision.outcome, ruleResult.outcome);
     check('score', decision.score, score.score);
     check('riskGrade', decision.riskGrade, score.riskGrade);
-    check('reasonCodes', [...decision.reasonCodes].sort(), [...ruleResult.reasonCodes].sort());
+    check('reasonCodes', [...decision.reasonCodes].sort(), replayedReasonCodes.sort());
     check('approvedAmount', decision.approvedAmount ? Number(decision.approvedAmount) : null, approvedAmount);
     check('interestRate', decision.interestRate ? Number(decision.interestRate) : null, interestRate);
 

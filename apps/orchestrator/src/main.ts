@@ -10,6 +10,8 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  // the console is a separate origin (Vercel in prod, a different dev port locally)
+  app.enableCors({ origin: process.env.CONSOLE_ORIGIN ?? true });
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   const port = process.env.PORT ?? 3001;
   await app.listen(port);

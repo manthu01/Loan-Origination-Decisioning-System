@@ -123,4 +123,37 @@ describe('PolicyService', () => {
       expect(result.status).toBe('ACTIVE');
     });
   });
+
+  describe('getSimulationRecords', () => {
+    it('derives applicant.age from dob (stored payload only has dob, not age) so AGE_* rules work on replay', async () => {
+      const decisionCreatedAt = new Date('2026-06-15');
+      prisma.application.findMany.mockResolvedValue([
+        {
+          id: 'APP1',
+          payload: {
+            applicant: { dob: '2000-06-15', monthlyIncome: 50000, obligations: 5000 },
+            application: { estimatedEmi: 8000 },
+          },
+          decisions: [{ outcome: 'APPROVE', score: 650, probabilityOfDefault: 0.03, createdAt: decisionCreatedAt }],
+          events: [{ output: JSON.stringify({ tradelines: 2 }) }],
+        },
+      ]);
+
+      const records = await service.getSimulationRecords('PL', 10);
+
+      expect(records).toHaveLength(1);
+      expect((records[0].context.applicant as any).age).toBe(26); // 2000-06-15 -> 2026-06-15
+    });
+
+    it('skips applications missing a decision or a BUREAU event', async () => {
+      prisma.application.findMany.mockResolvedValue([
+        { id: 'APP1', payload: {}, decisions: [], events: [{ output: '{}' }] },
+        { id: 'APP2', payload: {}, decisions: [{ outcome: 'APPROVE', score: 600, probabilityOfDefault: 0.05, createdAt: new Date() }], events: [] },
+      ]);
+
+      const records = await service.getSimulationRecords('PL', 10);
+
+      expect(records).toHaveLength(0);
+    });
+  });
 });

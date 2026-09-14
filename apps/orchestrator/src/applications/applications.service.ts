@@ -2,13 +2,14 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { HashChainService } from '../common/hash-chain.service';
 import { PrismaService } from '../common/prisma.service';
+import { mergeReasonCodes } from '../common/reason-codes';
 import { PolicyService } from '../policy/policy.service';
 import { RulesEngineService } from '../common/rules-engine.service';
 import { PolicyDocument, RuleEvaluationContext } from '../common/rules-engine.types';
 import { CreateApplicationDto } from './dto/create-application.dto';
 import { BureauClientService } from './stages/bureau.service';
 import { DedupeService } from './stages/dedupe.service';
-import { deriveAge, KycService } from './stages/kyc.service';
+import { KycService } from './stages/kyc.service';
 import { LimitPricingService } from './stages/limit-pricing.service';
 import { buildScoringFeatures, ScoringClientService } from './stages/scoring-client.service';
 
@@ -127,9 +128,7 @@ export class ApplicationsService {
       });
     }
 
-    const reasonCodes = Array.from(
-      new Set([...ruleResult.reasonCodes, ...(ruleResult.outcome !== 'APPROVE' ? score.reasonCodes.map((r) => r.code) : [])]),
-    );
+    const reasonCodes = mergeReasonCodes(ruleResult.outcome, ruleResult.reasonCodes, score.reasonCodes);
 
     // 8. PERSIST -- one transaction: every stage's DecisionEvent (hash-chained), the
     // Decision row, and the Application status flip, committed together.
