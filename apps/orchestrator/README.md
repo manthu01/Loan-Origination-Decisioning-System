@@ -45,6 +45,14 @@ endpoints land in a later phase -- see `docs/build-plan.md`.
   and model version recorded on the decision (reusing the BUREAU data actually captured
   at the time, not a fresh bureau call — see `audit/replay.service.ts`) and diffs the
   result against what was stored.
+- `GET /applications?status=&outcome=&reasonCode=&product=&scoreMin=&scoreMax=` — the
+  credit-ops queue.
+- `GET /decisions/stats?product=&days=` — approval rate over time, score distribution,
+  reason-code frequency, decision latency p50/p95/p99, champion-vs-challenger score
+  correlation. Powers the console dashboard.
+- `POST /decisions/:id/override` — `{ newOutcome, justification (>=10 chars), proposedBy,
+  approvedBy }`. Only a REFER can be overridden; rejected if `proposedBy === approvedBy`
+  (maker-checker); logs an `OVERRIDE` event into the same hash chain as every other stage.
 
 ## A hash-chain gotcha worth knowing
 

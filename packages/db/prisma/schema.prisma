@@ -40,6 +40,7 @@ enum PipelineStage {
   LIMIT
   PRICE
   PERSIST
+  OVERRIDE
 }
 
 enum UserRole {
@@ -106,7 +107,8 @@ model Decision {
   challengerScore      Int? // shadow-mode XGBoost
   challengerModelId    String?
   latencyMs            Int
-  overriddenById        String?
+  overrideProposedById  String? // maker: proposed the override
+  overriddenById        String? // checker: approved it; must differ from overrideProposedById
   overrideJustification String?
   createdAt            DateTime        @default(now())
 
