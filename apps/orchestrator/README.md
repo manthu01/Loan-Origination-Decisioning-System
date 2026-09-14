@@ -39,6 +39,25 @@ endpoints land in a later phase -- see `docs/build-plan.md`.
 - `POST /applications` — `{ applicant: {...}, application: {...} }`, optional
   `Idempotency-Key` header. Runs the full pipeline and returns the decision.
 - `GET /applications/:id` — application + decision + full ordered `DecisionEvent` trace.
+- `GET /audit/verify` — walks the entire hash chain and reports the first tampered row,
+  if any.
+- `POST /decisions/:id/replay` — re-runs SCORE/RULES/LIMIT/PRICE against the exact policy
+  and model version recorded on the decision (reusing the BUREAU data actually captured
+  at the time, not a fresh bureau call — see `audit/replay.service.ts`) and diffs the
+  result against what was stored.
+
+## A hash-chain gotcha worth knowing
+
+`DecisionEvent.input`/`output` are `String` columns holding pre-canonicalized JSON text,
+not Prisma `Json`/`jsonb`. That's deliberate, not an oversight: Postgres re-serializes
+jsonb numbers through its own `numeric` formatting on read, which can round a
+many-significant-digit float (e.g. `2000/120000` → `0.016666666666666666` in JS) to a
+different decimal string than what was originally hashed (`...66667`) — an untampered row
+would then fail verification, a false positive that defeats the whole point of the audit
+log. Storing already-canonical text sidesteps this: the column is returned byte-for-byte,
+so re-hashing always reproduces the original hash. Found by running the actual chain
+verification against real data during this phase, not by inspection -- see the commit
+history if you want the debugging trail.
 
 ## A calibration note for any policy you activate
 

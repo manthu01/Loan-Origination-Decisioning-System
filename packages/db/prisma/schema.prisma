@@ -122,8 +122,14 @@ model DecisionEvent {
   applicationId String
   application   Application   @relation(fields: [applicationId], references: [id])
   stage         PipelineStage
-  input         Json
-  output        Json
+  // Stored as pre-canonicalized JSON TEXT, not `Json`/jsonb, and deliberately so: Postgres
+  // re-serializes jsonb numbers through its own `numeric` formatting, which can round a
+  // many-significant-digit float (e.g. 2000/120000) to a different decimal string than
+  // JS produced -- a false "tampered" verdict on a row nobody touched. Text columns are
+  // stored and returned byte-for-byte, so the hash always recomputes from exactly what
+  // was originally hashed. See common/hash-chain.service.ts.
+  input         String
+  output        String
   durationMs    Int
   prevHash      String
   hash          String        @unique

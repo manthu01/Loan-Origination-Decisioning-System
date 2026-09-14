@@ -108,7 +108,7 @@ export class PolicyService {
       const context: RuleEvaluationContext = {
         applicant: payload.applicant as unknown as Record<string, unknown>,
         application: payload.application as unknown as Record<string, unknown>,
-        bureau: bureauEvent.output as Record<string, unknown>,
+        bureau: JSON.parse(bureauEvent.output) as Record<string, unknown>,
         score: { value: decision.score },
       };
 

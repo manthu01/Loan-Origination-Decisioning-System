@@ -223,14 +223,22 @@ export class ApplicationsService {
     };
   }
 
-  findById(id: string) {
-    return this.prisma.application.findUnique({
+  async findById(id: string) {
+    const application = await this.prisma.application.findUnique({
       where: { id },
       include: {
         decisions: { orderBy: { createdAt: 'desc' } },
         events: { orderBy: { id: 'asc' } },
       },
     });
+    if (!application) return null;
+    // events store input/output as canonical JSON text (see hash-chain.service.ts) --
+    // parse back to objects for API consumers; hash verification itself never goes
+    // through this path, so this parsing has no bearing on chain integrity.
+    return {
+      ...application,
+      events: application.events.map((e) => ({ ...e, input: JSON.parse(e.input), output: JSON.parse(e.output) })),
+    };
   }
 
   private async ensureModelVersion(tx: Prisma.TransactionClient, name: string, kind: 'SCORECARD' | 'CHALLENGER') {
