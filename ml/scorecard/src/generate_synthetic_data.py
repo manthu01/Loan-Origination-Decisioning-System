@@ -18,12 +18,17 @@ Run: python src/generate_synthetic_data.py
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 
 RNG_SEED = 42
 N_APPLICATIONS = 60_000
-OUTPUT_PATH = "ml/scorecard/data/applications.csv"
+# relative to this file's own location, not the caller's cwd -- train_scorecard.py's
+# ROOT/DATA_PATH follow the same pattern for the same reason (CI invokes this with
+# working-directory: ml/scorecard, a repo-root-relative string would resolve wrong there)
+OUTPUT_PATH = Path(__file__).resolve().parents[1] / "data" / "applications.csv"
 
 EMPLOYMENT_TYPES = ["SALARIED", "SELF_EMPLOYED", "SALARIED", "SALARIED", "GOVERNMENT"]
 PRODUCTS = ["PL", "PL", "PL", "BL", "AUTO"]
